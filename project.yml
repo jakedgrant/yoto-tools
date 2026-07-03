@@ -1,0 +1,72 @@
+name: YotoTools
+options:
+  bundleIdPrefix: com.yototools
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GENERATE_INFOPLIST_FILE: NO
+
+targets:
+  YotoTools:
+    type: application
+    platform: iOS
+    sources:
+      - path: YotoTools
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yototools.YotoTools
+        INFOPLIST_FILE: YotoTools/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: YotoTools/Resources/YotoTools.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SUPPORTS_MACCATALYST: NO
+
+  YotoToolsTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: YotoToolsTests
+      - path: TestSupport
+    dependencies:
+      - target: YotoTools
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yototools.YotoToolsTests
+        GENERATE_INFOPLIST_FILE: YES
+
+  YotoToolsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: YotoToolsUITests
+    dependencies:
+      - target: YotoTools
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yototools.YotoToolsUITests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  YotoTools:
+    build:
+      targets:
+        YotoTools: all
+        YotoToolsTests: [test]
+        YotoToolsUITests: [test]
+    test:
+      targets:
+        - YotoToolsTests
+        - YotoToolsUITests
+      gatherCoverageData: true

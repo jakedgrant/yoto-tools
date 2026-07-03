@@ -1,0 +1,208 @@
+import SwiftUI
+
+@MainActor
+@Observable
+final class CardDetailViewModel {
+    enum LoadState: Equatable {
+        case loading
+        case loaded
+        case failed(String)
+    }
+
+    struct Banner: Equatable {
+        var message: String
+        var isError: Bool
+    }
+
+    private(set) var loadState: LoadState = .loading
+    private(set) var card: CardDetail?
+    private(set) var assigningTrackID: String?
+    var banner: Banner?
+
+    private let api: any YotoAPI
+    private let assignment: IconAssignmentService
+    private let cardId: String
+    private let grid: PixelGrid
+    private let artName: String
+    /// Called after a successful assign with the new media id (for local caching).
+    private let onAssigned: (String) -> Void
+
+    init(
+        api: any YotoAPI,
+        cardId: String,
+        grid: PixelGrid,
+        artName: String,
+        onAssigned: @escaping (String) -> Void
+    ) {
+        self.api = api
+        self.assignment = IconAssignmentService(api: api)
+        self.cardId = cardId
+        self.grid = grid
+        self.artName = artName
+        self.onAssigned = onAssigned
+    }
+
+    func load() async {
+        loadState = .loading
+        do {
+            card = try await api.getContent(cardId: cardId)
+            loadState = .loaded
+        } catch {
+            loadState = .failed(APIErrorFormatter.message(error))
+        }
+    }
+
+    func assign(track: TrackView) async {
+        guard let currentCard = card, assigningTrackID == nil else { return }
+        assigningTrackID = track.id
+        defer { assigningTrackID = nil }
+        do {
+            let result = try await assignment.assign(
+                grid: grid,
+                to: track,
+                in: currentCard,
+                filename: filename)
+            card = result.card
+            onAssigned(result.mediaId)
+            banner = Banner(message: "Assigned to \"\(track.title)\".", isError: false)
+        } catch {
+            banner = Banner(message: APIErrorFormatter.message(error), isError: true)
+        }
+    }
+
+    private var filename: String {
+        let safe = artName.replacingOccurrences(of: " ", with: "-")
+            .components(separatedBy: CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_")).inverted)
+            .joined()
+        return safe.isEmpty ? "icon" : safe
+    }
+}
+
+/// Shows a card's chapters and tracks; tapping a track uploads the art and assigns it.
+struct CardDetailView: View {
+    @Environment(AppEnvironment.self) private var appEnvironment
+
+    let art: PixelArt
+    let cardId: String
+    let onFinished: () -> Void
+
+    @State private var viewModel: CardDetailViewModel?
+
+    var body: some View {
+        Group {
+            if let viewModel {
+                content(viewModel)
+            } else {
+                ProgressView()
+            }
+        }
+        .navigationTitle("Assign to Track")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Done", action: onFinished)
+            }
+        }
+        .task {
+            let model = CardDetailViewModel(
+                api: appEnvironment.api,
+                cardId: cardId,
+                grid: art.grid,
+                artName: art.name,
+                onAssigned: { mediaId in art.lastUploadedMediaId = mediaId })
+            viewModel = model
+            await model.load()
+        }
+    }
+
+    @ViewBuilder
+    private func content(_ viewModel: CardDetailViewModel) -> some View {
+        switch viewModel.loadState {
+        case .loading:
+            ProgressView("Loading tracks…")
+        case .failed(let message):
+            ContentUnavailableView {
+                Label("Couldn't Load", systemImage: "wifi.exclamationmark")
+            } description: {
+                Text(message)
+            } actions: {
+                Button("Retry") { Task { await viewModel.load() } }
+            }
+        case .loaded:
+            trackList(viewModel)
+        }
+    }
+
+    private func trackList(_ viewModel: CardDetailViewModel) -> some View {
+        List {
+            artPreviewSection
+            ForEach(viewModel.card?.chapters ?? []) { chapter in
+                Section(chapter.title) {
+                    ForEach(chapter.tracks) { track in
+                        trackRow(track, viewModel: viewModel)
+                    }
+                }
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let banner = viewModel.banner {
+                bannerView(banner)
+            }
+        }
+    }
+
+    private var artPreviewSection: some View {
+        Section {
+            HStack(spacing: 12) {
+                PixelThumbnail(grid: art.grid)
+                    .frame(width: 48, height: 48)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                VStack(alignment: .leading) {
+                    Text(art.name).font(.headline)
+                    Text("Tap a track to assign this icon")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func trackRow(_ track: TrackView, viewModel: CardDetailViewModel) -> some View {
+        Button {
+            Task { await viewModel.assign(track: track) }
+        } label: {
+            HStack(spacing: 12) {
+                trackIcon(track)
+                Text(track.title)
+                Spacer()
+                if viewModel.assigningTrackID == track.id {
+                    ProgressView()
+                } else if track.hasCustomIcon {
+                    Image(systemName: "photo")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(viewModel.assigningTrackID != nil)
+    }
+
+    private func trackIcon(_ track: TrackView) -> some View {
+        AsyncImage(url: track.iconURL) { image in
+            image.resizable().interpolation(.none).scaledToFit()
+        } placeholder: {
+            RoundedRectangle(cornerRadius: 6).fill(.quaternary)
+        }
+        .frame(width: 28, height: 28)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+
+    private func bannerView(_ banner: CardDetailViewModel.Banner) -> some View {
+        Text(banner.message)
+            .font(.subheadline)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(banner.isError ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
+            .foregroundStyle(banner.isError ? Color.red : Color.green)
+    }
+}
