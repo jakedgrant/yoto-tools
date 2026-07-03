@@ -1,7 +1,9 @@
 # Future Work
 
 Deferred features and ideas, roughly in priority order. Pick items up here rather than
-re-deriving scope. See `CLAUDE.md` for current architecture.
+re-deriving scope. See `CLAUDE.md` for current architecture and
+[`ROADMAP.md`](./ROADMAP.md) for the sequenced release plan (which phase each of these
+lands in) and the monetization strategy.
 
 ## Pixel Art tool
 
@@ -41,5 +43,3 @@ re-deriving scope. See `CLAUDE.md` for current architecture.
 
 - **Snapshot tests** for key screens (editor, gallery, assign list).
 - **Broader UI tests:** end-to-end create → save → (mocked) assign happy path.
-- **CI:** wire `xcodebuild test` into a CI workflow.
-- **Lint/format:** adopt SwiftFormat/SwiftLint with the project's conventions.

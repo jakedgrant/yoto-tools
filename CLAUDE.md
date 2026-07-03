@@ -1,7 +1,8 @@
 # CLAUDE.md
 
 Guidance for working in this repo. Keep this file current as the app evolves.
-For deferred features and ideas, see [`FUTURE_WORK.md`](./FUTURE_WORK.md).
+For deferred features and ideas, see [`FUTURE_WORK.md`](./FUTURE_WORK.md); for the
+sequenced release plan and monetization strategy, see [`ROADMAP.md`](./ROADMAP.md).
 
 ## What this is
 
@@ -27,8 +28,14 @@ make build             # build for an auto-selected iOS simulator
 make test              # build + run all tests (44 unit + 1 UI smoke)
 make run               # build, install, and launch in the simulator
 make build-and-run     # default target
+make lint              # SwiftFormat --lint + SwiftLint --strict (CI runs this)
+make format            # apply SwiftFormat
 make clean
 ```
+
+CI (`.github/workflows/test.yml`) runs `make lint` + `make test` on every push/PR.
+Lint configs: `.swiftformat` and `.swiftlint.yml` (nested test-dir configs relax
+test-only rules). Keep both clean — CI treats warnings as failures.
 
 Build logs/result bundles: `build/logs/<AGENT_NAME>/build.log` and `build.xcresult`.
 Optional pretty-printer: `brew install xcbeautify`.
@@ -116,6 +123,7 @@ TestSupport/      Mocks (MockYotoAPI, MockWebAuthenticator, MockAuthProvider), S
 | Project | **XcodeGen** (`project.yml`); `.xcodeproj` generated and git-ignored. |
 | Editor v1 scope | Core tools + undo/redo + Photos import + PNG export. **Animated GIF deferred** ([`FUTURE_WORK.md`](./FUTURE_WORK.md)). |
 | Info.plist | `GENERATE_INFOPLIST_FILE: NO`; standard `CFBundle*` keys are set manually — **don't remove them** or the app fails to install. |
+| Monetization | Free core + one-time **Pro unlock** (StoreKit 2 non-consumable) + tip jar; no subscription. Ship 1.0 under a "… for Yoto" name with animated GIF icons as the Pro headline. Plan: [`ROADMAP.md`](./ROADMAP.md). |
 
 ## Setup to connect to Yoto
 
