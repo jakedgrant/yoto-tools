@@ -51,8 +51,8 @@ enum Fixtures {
                     "cardId": "CARD1",
                     "title": "Bedtime Stories",
                     "metadata": ["cover": ["imageL": "https://example.com/cover.png"]],
-                ]
-            ]
+                ],
+            ],
         ]
     }
 

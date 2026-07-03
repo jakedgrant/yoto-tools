@@ -137,9 +137,9 @@ final class EditorViewModel {
     func save(into context: ModelContext) -> PixelArt {
         switch mode {
         case .new:
-            return saveAsNew(into: context)
+            saveAsNew(into: context)
         case .existing(let art):
-            return isDirty ? overwrite(art, into: context) : art
+            isDirty ? overwrite(art, into: context) : art
         }
     }
 

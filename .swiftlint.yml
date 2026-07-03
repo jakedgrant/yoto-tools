@@ -1,0 +1,18 @@
+# SwiftLint configuration. Nested configs in YotoToolsTests/ and TestSupport/ relax
+# test-only rules. Run via `make lint` (alongside SwiftFormat's lint mode).
+
+included:
+  - YotoTools
+  - YotoToolsTests
+  - YotoToolsUITests
+  - TestSupport
+
+identifier_name:
+  min_length: 1 # pixel-art code legitimately uses x, y, r, g, b, a
+
+trailing_comma:
+  mandatory_comma: true # agree with SwiftFormat's trailingCommas rule
+
+large_tuple:
+  warning: 3 # mock recorders capture (data, filename, autoConvert)-style call tuples
+  error: 4

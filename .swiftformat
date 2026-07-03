@@ -1,0 +1,24 @@
+# SwiftFormat configuration — tuned to match the existing codebase style
+# (options below were inferred from the code with `swiftformat --infer-options`).
+# Run `make format` to apply, `make lint` to check without writing.
+
+--swiftversion 6.0
+
+# Inferred house style
+--self init-only
+--pattern-let inline
+--strip-unused-args unnamed-only
+--wrap-parameters before-first
+--wrap-collections before-first
+--call-site-paren same-line
+--no-space-operators ..<
+
+# Keep formatting conservative: don't rewrite structure the team didn't ask for.
+# - wrapPropertyBodies/wrapFunctionBodies/blankLinesBetweenScopes: single-line computed
+#   properties and tight property groups are house style.
+# - redundantSendable: explicit Sendable conformances are deliberate documentation in a
+#   strict-concurrency codebase.
+# - noForceTryInTests/noForceUnwrapInTests: test assertion style is the tests' business.
+--disable blankLinesAtStartOfScope, blankLinesAtEndOfScope, wrapMultilineStatementBraces, wrapPropertyBodies, wrapFunctionBodies, blankLinesBetweenScopes, redundantSendable, redundantMemberwiseInit, noForceTryInTests, noForceUnwrapInTests
+
+--exclude build, .build, YotoTools.xcodeproj

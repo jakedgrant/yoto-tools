@@ -12,7 +12,7 @@ struct PixelGrid: Equatable, Sendable {
     private(set) var pixels: [PixelColor]
 
     init() {
-        pixels = Array(repeating: .clear, count: Self.pixelCount)
+        self.pixels = Array(repeating: .clear, count: Self.pixelCount)
     }
 
     init(pixels: [PixelColor]) {
@@ -37,7 +37,7 @@ struct PixelGrid: Equatable, Sendable {
     }
 
     var isEmpty: Bool {
-        pixels.allSatisfy { $0.isClear }
+        pixels.allSatisfy(\.isClear)
     }
 
     // MARK: Tools
@@ -106,17 +106,17 @@ struct PixelGrid: Equatable, Sendable {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         guard let provider = CGDataProvider(data: Data(raw) as CFData),
               let image = CGImage(
-                width: Self.side,
-                height: Self.side,
-                bitsPerComponent: 8,
-                bitsPerPixel: 32,
-                bytesPerRow: Self.side * 4,
-                space: colorSpace,
-                bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
-                provider: provider,
-                decode: nil,
-                shouldInterpolate: false,
-                intent: .defaultIntent)
+                  width: Self.side,
+                  height: Self.side,
+                  bitsPerComponent: 8,
+                  bitsPerPixel: 32,
+                  bytesPerRow: Self.side * 4,
+                  space: colorSpace,
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
+                  provider: provider,
+                  decode: nil,
+                  shouldInterpolate: false,
+                  intent: .defaultIntent)
         else { return nil }
 
         let mutableData = NSMutableData()

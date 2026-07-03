@@ -21,23 +21,22 @@ final class WebAuthenticator: NSObject, WebAuthenticating {
         try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(
                 url: url,
-                callbackURLScheme: callbackScheme
-            ) { callbackURL, error in
-                if let error {
-                    if let asError = error as? ASWebAuthenticationSessionError,
-                       asError.code == .canceledLogin {
-                        continuation.resume(throwing: WebAuthError.cancelled)
-                    } else {
-                        continuation.resume(throwing: error)
+                callbackURLScheme: callbackScheme) { callbackURL, error in
+                    if let error {
+                        if let asError = error as? ASWebAuthenticationSessionError,
+                           asError.code == .canceledLogin {
+                            continuation.resume(throwing: WebAuthError.cancelled)
+                        } else {
+                            continuation.resume(throwing: error)
+                        }
+                        return
                     }
-                    return
+                    guard let callbackURL else {
+                        continuation.resume(throwing: WebAuthError.noCallbackURL)
+                        return
+                    }
+                    continuation.resume(returning: callbackURL)
                 }
-                guard let callbackURL else {
-                    continuation.resume(throwing: WebAuthError.noCallbackURL)
-                    return
-                }
-                continuation.resume(returning: callbackURL)
-            }
             session.presentationContextProvider = self
             session.prefersEphemeralWebBrowserSession = ephemeral
             if !session.start() {

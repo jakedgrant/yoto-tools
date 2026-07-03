@@ -24,8 +24,12 @@ struct YotoToolsApp: App {
             return try ModelContainer(for: schema, configurations: configuration)
         } catch {
             let configuration = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-            // If even the local store fails, there's nothing usable to fall back to.
-            return try! ModelContainer(for: schema, configurations: configuration)
+            do {
+                return try ModelContainer(for: schema, configurations: configuration)
+            } catch {
+                // If even the local store fails, there's nothing usable to fall back to.
+                fatalError("Unable to create a SwiftData store: \(error)")
+            }
         }
     }
 }

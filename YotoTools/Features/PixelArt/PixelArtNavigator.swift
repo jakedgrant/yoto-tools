@@ -18,11 +18,10 @@ struct PixelArtNavigator: View {
         NavigationStack(path: $path) {
             PixelArtGalleryView(
                 onNew: { path.append(.editor(nil)) },
-                onOpen: { art in path.append(.editor(art.persistentModelID)) }
-            )
-            .navigationDestination(for: PixelArtRoute.self) { route in
-                destination(for: route)
-            }
+                onOpen: { art in path.append(.editor(art.persistentModelID)) })
+                .navigationDestination(for: PixelArtRoute.self) { route in
+                    destination(for: route)
+                }
         }
     }
 

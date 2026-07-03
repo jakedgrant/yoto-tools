@@ -18,8 +18,8 @@ struct CardSummary: Identifiable, Hashable, Sendable, Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(String.self, forKey: .cardId)
-        title = (try? container.decode(String.self, forKey: .title)) ?? "Untitled"
+        self.id = try container.decode(String.self, forKey: .cardId)
+        self.title = (try? container.decode(String.self, forKey: .title)) ?? "Untitled"
 
         var cover: URL?
         if let metadata = try? container.nestedContainer(keyedBy: MetadataKeys.self, forKey: .metadata),
@@ -27,7 +27,7 @@ struct CardSummary: Identifiable, Hashable, Sendable, Decodable {
            let imageString = try? coverContainer.decode(String.self, forKey: .imageL) {
             cover = URL(string: imageString)
         }
-        coverImageURL = cover
+        self.coverImageURL = cover
     }
 }
 

@@ -30,8 +30,7 @@ struct PixelCanvasView: View {
                         onDraw(x, y, !isStroking)
                         isStroking = true
                     }
-                    .onEnded { _ in isStroking = false }
-            )
+                    .onEnded { _ in isStroking = false })
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
         .aspectRatio(1, contentMode: .fit)
@@ -61,7 +60,7 @@ struct PixelCanvasView: View {
 
     private func drawGridLines(in context: inout GraphicsContext, cell: CGFloat, side: CGFloat) {
         var path = Path()
-        for i in 0...PixelGrid.side {
+        for i in 0 ... PixelGrid.side {
             let offset = CGFloat(i) * cell
             path.move(to: CGPoint(x: offset, y: 0))
             path.addLine(to: CGPoint(x: offset, y: side))

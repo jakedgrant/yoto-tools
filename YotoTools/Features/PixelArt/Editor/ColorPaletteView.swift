@@ -21,8 +21,7 @@ struct ColorPaletteView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .strokeBorder(
                                         activeColor == color ? Color.accentColor : Color.black.opacity(0.15),
-                                        lineWidth: activeColor == color ? 3 : 1)
-                            )
+                                        lineWidth: activeColor == color ? 3 : 1))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Palette color")

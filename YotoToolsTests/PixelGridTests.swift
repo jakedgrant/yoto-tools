@@ -28,7 +28,8 @@ struct PixelGridTests {
 
         let source = try #require(CGImageSourceCreateWithData(data as CFData, nil))
         let properties = try #require(
-            CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any])
+            CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+        )
         #expect(properties[kCGImagePropertyPixelWidth] as? Int == 16)
         #expect(properties[kCGImagePropertyPixelHeight] as? Int == 16)
     }
@@ -58,7 +59,7 @@ struct PixelGridTests {
         #expect(grid.color(x: 0, y: 0) == .white)
         #expect(grid.color(x: 7, y: 5) == .white)
         #expect(grid.color(x: 8, y: 5) == .black) // wall untouched
-        #expect(grid.color(x: 9, y: 5).isClear)    // other side untouched
+        #expect(grid.color(x: 9, y: 5).isClear) // other side untouched
     }
 
     @Test func floodFillNoOpsWhenColorMatches() {

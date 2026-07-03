@@ -33,10 +33,9 @@ struct PixelArtEditorView: View {
                 showsGrid: viewModel.showsGrid,
                 onDraw: { x, y, beginning in
                     viewModel.draw(x: x, y: y, beginningStroke: beginning)
-                }
-            )
-            .padding(.horizontal)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+                })
+                .padding(.horizontal)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
 
             toolStrip
             ColorPaletteView(activeColor: $viewModel.activeColor, customColor: $customColor)
@@ -54,11 +53,10 @@ struct PixelArtEditorView: View {
         .confirmationDialog(
             "Save changes",
             isPresented: saveDialogBinding,
-            titleVisibility: .visible
-        ) {
-            Button("Overwrite Original") { completeSave(overwrite: true) }
-            Button("Save as New Copy") { completeSave(overwrite: false) }
-            Button("Cancel", role: .cancel) { saveIntent = nil }
+            titleVisibility: .visible) {
+                Button("Overwrite Original") { completeSave(overwrite: true) }
+                Button("Save as New Copy") { completeSave(overwrite: false) }
+                Button("Cancel", role: .cancel) { saveIntent = nil }
         } message: {
             Text("You've edited \"\(viewModel.trimmedName)\". Overwrite the original or keep it and save a new copy?")
         }

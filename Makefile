@@ -49,7 +49,8 @@ APP_PATH := $(BUILD_PRODUCTS)/$(APP_SCHEME).app
 
 PHONY_TARGETS := $(TARGET_PREFIX)help $(TARGET_PREFIX)diagnose $(TARGET_PREFIX)build \
 	$(TARGET_PREFIX)test $(TARGET_PREFIX)run $(TARGET_PREFIX)build-and-run \
-	$(TARGET_PREFIX)build-and-run-background $(TARGET_PREFIX)clean $(TARGET_PREFIX)agent-verify
+	$(TARGET_PREFIX)build-and-run-background $(TARGET_PREFIX)clean $(TARGET_PREFIX)agent-verify \
+	$(TARGET_PREFIX)lint $(TARGET_PREFIX)format
 .PHONY: $(PHONY_TARGETS)
 
 $(TARGET_PREFIX)help:
@@ -62,7 +63,9 @@ $(TARGET_PREFIX)help:
 		"  make $(TARGET_PREFIX)build-and-run            Build then run" \
 		"  make $(TARGET_PREFIX)build-and-run-background Build then run in background" \
 		"  make $(TARGET_PREFIX)clean                    Clean derived data + logs" \
-		"  make $(TARGET_PREFIX)agent-verify             Build and test"
+		"  make $(TARGET_PREFIX)agent-verify             Build and test" \
+		"  make $(TARGET_PREFIX)lint                     Check formatting (SwiftFormat) + lint (SwiftLint)" \
+		"  make $(TARGET_PREFIX)format                   Apply SwiftFormat to all sources"
 
 $(TARGET_PREFIX)diagnose:
 ifeq ($(APP_PLATFORM),ios)
@@ -160,6 +163,15 @@ ifeq ($(APP_PLATFORM),ios)
 else
 	@$(SCRIPTS_DIR)/run_app_macos.sh --app-path "$(APP_PATH)" --background
 endif
+
+SWIFT_SOURCE_DIRS := YotoTools YotoToolsTests YotoToolsUITests TestSupport
+
+$(TARGET_PREFIX)lint:
+	@swiftformat $(SWIFT_SOURCE_DIRS) --lint
+	@swiftlint lint --quiet --strict
+
+$(TARGET_PREFIX)format:
+	@swiftformat $(SWIFT_SOURCE_DIRS)
 
 $(TARGET_PREFIX)clean:
 	@$(SCRIPTS_DIR)/clean.sh

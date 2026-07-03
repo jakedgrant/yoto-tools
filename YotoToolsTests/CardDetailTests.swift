@@ -48,7 +48,8 @@ struct CardDetailTests {
         #expect(decoded["title"]?.stringValue == "Bedtime Stories")
         #expect(decoded["metadata"]?["author"]?.stringValue == "Jane")
         // Writable content (including the new icon) is preserved...
-        let icon = decoded["content"]?["chapters"]?.arrayValue?[0]["tracks"]?.arrayValue?[1]["display"]?["icon16x16"]?.stringValue
+        let track = decoded["content"]?["chapters"]?.arrayValue?[0]["tracks"]?.arrayValue?[1]
+        let icon = track?["display"]?["icon16x16"]?.stringValue
         #expect(icon == "yoto:#NEWMEDIA")
         // ...but server-managed fields are not sent back.
         #expect(decoded["userId"] == nil)

@@ -1,0 +1,3 @@
+# Test-only relaxations; inherits the root .swiftlint.yml.
+disabled_rules:
+  - force_try # test fixtures may force-try; a crash is a loud, correct failure

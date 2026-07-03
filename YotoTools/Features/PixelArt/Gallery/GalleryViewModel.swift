@@ -14,7 +14,8 @@ final class GalleryViewModel {
 
     func allArtwork(in context: ModelContext) -> [PixelArt] {
         let descriptor = FetchDescriptor<PixelArt>(
-            sortBy: [SortDescriptor(\.modifiedAt, order: .reverse)])
+            sortBy: [SortDescriptor(\.modifiedAt, order: .reverse)]
+        )
         return (try? context.fetch(descriptor)) ?? []
     }
 
