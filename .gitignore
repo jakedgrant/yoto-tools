@@ -11,3 +11,7 @@ YotoTools.xcodeproj/
 # Swift Package Manager
 .swiftpm/
 .build/
+
+# Local agent/tooling state (per-machine, not project config)
+agents/
+.claude/settings.local.json
