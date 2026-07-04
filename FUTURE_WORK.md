@@ -42,4 +42,3 @@ lands in) and the monetization strategy.
 ## Testing / tooling
 
 - **Snapshot tests** for key screens (editor, gallery, assign list).
-- **Broader UI tests:** end-to-end create → save → (mocked) assign happy path.

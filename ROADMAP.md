@@ -58,7 +58,7 @@ Each lands independently, in this order:
 - [x] **Browse icons**: the Icon Library screen (from the gallery toolbar) shows the
       user's uploads and Yoto's public library (`GET /media/displayIcons/user/yoto`) with
       title/tag search; "import as starting point" ships later, Pro-gated.
-- [ ] Tests alongside each item; add the create → save → (mocked) assign UI happy path once
+- [x] Tests alongside each item; add the create → save → (mocked) assign UI happy path once
       the assign UI stabilizes.
 
 ## Phase 2 — Animated GIF icons (the marquee)
