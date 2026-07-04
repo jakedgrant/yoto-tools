@@ -37,8 +37,12 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources:
+      # Exclude lint configs so they aren't copied into the bundle as resources
+      # (duplicate .swiftlint.yml outputs otherwise fail the build).
       - path: YotoToolsTests
+        excludes: [".swiftlint.yml"]
       - path: TestSupport
+        excludes: [".swiftlint.yml"]
     dependencies:
       - target: YotoTools
     settings:
