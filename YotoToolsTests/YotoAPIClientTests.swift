@@ -116,7 +116,23 @@ struct YotoAPIClientTests {
         defer { StubURLProtocol.handler = nil }
 
         let icons = try await makeClient().getUserIcons()
-        #expect(icons == [UserIcon(mediaId: "BARE")])
+        #expect(icons == [DisplayIcon(mediaId: "BARE")])
+    }
+
+    @Test func getPublicIconsDecodesTitlesAndTags() async throws {
+        let log = RequestLog()
+        StubURLProtocol.handler = { request in
+            log.append(request)
+            return StubURLProtocol.json(
+                Fixtures.publicIcons([("PUB-1", "Happy Seedling", ["happy", "plant"])]))
+        }
+        defer { StubURLProtocol.handler = nil }
+
+        let icons = try await makeClient().getPublicIcons()
+        #expect(icons.first?.mediaId == "PUB-1")
+        #expect(icons.first?.title == "Happy Seedling")
+        #expect(icons.first?.publicTags == ["happy", "plant"])
+        #expect(log.all.first?.url?.path == "/media/displayIcons/user/yoto")
     }
 
     @Test func uploadIconUsesPNGContentTypeAndQuery() async throws {

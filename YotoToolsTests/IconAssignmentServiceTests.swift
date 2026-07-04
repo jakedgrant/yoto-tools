@@ -51,7 +51,7 @@ struct IconAssignmentServiceTests {
 
     @Test func assignReusesCachedMediaIdWhenServerStillHasIt() async throws {
         let api = MockYotoAPI()
-        api.userIcons = [UserIcon(mediaId: "CACHED")]
+        api.userIcons = [DisplayIcon(mediaId: "CACHED")]
         let service = IconAssignmentService(api: api)
         let card = Fixtures.card()
         let track = try #require(card.chapters.first?.tracks.last)
@@ -130,7 +130,7 @@ struct IconAssignmentServiceTests {
 
     @Test func chapterAssignReusesCachedMediaId() async throws {
         let api = MockYotoAPI()
-        api.userIcons = [UserIcon(mediaId: "CACHED")]
+        api.userIcons = [DisplayIcon(mediaId: "CACHED")]
         let service = IconAssignmentService(api: api)
         let card = Fixtures.card()
         let chapter = try #require(card.chapters.first)

@@ -25,7 +25,7 @@ destination and writes per-agent artifacts under `build/` (`build/DerivedData/<A
 ```bash
 make diagnose          # environment + destination sanity check
 make build             # build for an auto-selected iOS simulator
-make test              # build + run all tests (71 unit + 1 UI smoke)
+make test              # build + run all tests (76 unit + 1 UI smoke)
 make run               # build, install, and launch in the simulator
 make build-and-run     # default target
 make lint              # SwiftFormat --lint + SwiftLint --strict (CI runs this)
@@ -76,6 +76,7 @@ YotoTools/
       Editor/     EditorViewModel, PixelArtEditorView, PixelCanvasView, ColorPaletteView,
                   DrawingTool, ExportablePNG, PixelColor+SwiftUI
       Gallery/    GalleryViewModel, PixelArtGalleryView, PixelThumbnail
+      Library/    IconBrowserView(+VM) — user uploads + public Yoto icon library
       Assign/     IconAssignmentService, CardListView(+VM), CardDetailView(+VM)
       PixelArtNavigator (routes)
 YotoToolsTests/   Swift Testing suites

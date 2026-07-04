@@ -7,6 +7,7 @@ enum PixelArtRoute: Hashable {
     case editor(PersistentIdentifier?)
     case assignCards(PersistentIdentifier)
     case assignDetail(art: PersistentIdentifier, cardId: String)
+    case iconLibrary
 }
 
 /// Owns the navigation stack for the Pixel Art tool and resolves models for routes.
@@ -18,7 +19,8 @@ struct PixelArtNavigator: View {
         NavigationStack(path: $path) {
             PixelArtGalleryView(
                 onNew: { path.append(.editor(nil)) },
-                onOpen: { art in path.append(.editor(art.persistentModelID)) })
+                onOpen: { art in path.append(.editor(art.persistentModelID)) },
+                onBrowseIcons: { path.append(.iconLibrary) })
                 .navigationDestination(for: PixelArtRoute.self) { route in
                     destination(for: route)
                 }
@@ -51,6 +53,9 @@ struct PixelArtNavigator: View {
             } else {
                 missingArt
             }
+
+        case .iconLibrary:
+            IconBrowserView()
         }
     }
 

@@ -139,27 +139,41 @@ struct UploadIconResponse: Decodable, Sendable {
     }
 }
 
-/// One of the user's previously uploaded icons, from `GET /media/displayIcons/user/me`.
+/// One icon from the display-icon listing endpoints — the user's own uploads
+/// (`GET /media/displayIcons/user/me`) or Yoto's public library
+/// (`GET /media/displayIcons/user/yoto`, which adds `title` and `publicTags`).
 /// Only `mediaId` is required; the rest is tolerated defensively like `CardSummary`.
-struct UserIcon: Identifiable, Hashable, Sendable, Decodable {
+struct DisplayIcon: Identifiable, Hashable, Sendable, Decodable {
     let mediaId: String
     let url: URL?
+    let title: String?
     let createdAt: Date?
+    let publicTags: [String]
 
     var id: String { mediaId }
 
-    private enum CodingKeys: String, CodingKey { case mediaId, url, createdAt }
+    private enum CodingKeys: String, CodingKey { case mediaId, url, title, createdAt, publicTags }
 
-    init(mediaId: String, url: URL? = nil, createdAt: Date? = nil) {
+    init(
+        mediaId: String,
+        url: URL? = nil,
+        title: String? = nil,
+        createdAt: Date? = nil,
+        publicTags: [String] = []
+    ) {
         self.mediaId = mediaId
         self.url = url
+        self.title = title
         self.createdAt = createdAt
+        self.publicTags = publicTags
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.mediaId = try container.decode(String.self, forKey: .mediaId)
         self.url = (try? container.decode(String.self, forKey: .url)).flatMap(URL.init(string:))
+        self.title = try? container.decode(String.self, forKey: .title)
+        self.publicTags = (try? container.decode([String].self, forKey: .publicTags)) ?? []
         // Timestamps arrive as ISO 8601 with fractional seconds; accept both variants.
         let timestamp = try? container.decode(String.self, forKey: .createdAt)
         self.createdAt = timestamp.flatMap { string in
@@ -169,7 +183,7 @@ struct UserIcon: Identifiable, Hashable, Sendable, Decodable {
     }
 }
 
-/// Response from the user icons listing endpoint.
-struct UserIconsResponse: Decodable, Sendable {
-    let displayIcons: [UserIcon]
+/// Response envelope shared by the display-icon listing endpoints.
+struct DisplayIconsResponse: Decodable, Sendable {
+    let displayIcons: [DisplayIcon]
 }

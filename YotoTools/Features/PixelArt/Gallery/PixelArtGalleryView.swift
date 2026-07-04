@@ -9,6 +9,7 @@ struct PixelArtGalleryView: View {
 
     let onNew: () -> Void
     let onOpen: (PixelArt) -> Void
+    let onBrowseIcons: () -> Void
 
     private let columns = [GridItem(.adaptive(minimum: 110), spacing: 16)]
 
@@ -36,7 +37,10 @@ struct PixelArtGalleryView: View {
         }
         .navigationTitle("Pixel Art")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button(action: onBrowseIcons) {
+                    Label("Icon Library", systemImage: "square.grid.3x3")
+                }
                 Button(action: onNew) {
                     Label("New", systemImage: "plus")
                 }

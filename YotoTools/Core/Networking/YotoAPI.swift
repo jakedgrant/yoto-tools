@@ -8,5 +8,7 @@ protocol YotoAPI: Sendable {
     /// Uploads a PNG and returns the resulting `mediaId`.
     func uploadIcon(pngData: Data, filename: String, autoConvert: Bool) async throws -> String
     /// The user's previously uploaded display icons.
-    func getUserIcons() async throws -> [UserIcon]
+    func getUserIcons() async throws -> [DisplayIcon]
+    /// Yoto's public icon library (titled and tagged).
+    func getPublicIcons() async throws -> [DisplayIcon]
 }

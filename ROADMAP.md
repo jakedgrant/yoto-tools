@@ -55,9 +55,9 @@ Each lands independently, in this order:
       preview and commit as one undo step (Bresenham + Zingl rasterizers on `PixelGrid`);
       a mirror mode (left–right / top–bottom / 4-way) expands every pencil, eraser, fill,
       and shape write through one chokepoint.
-- [ ] **Browse icons**: one screen for the public Yoto icon library and the user's own
-      uploads (`getUserIcons()` already exists); "import as starting point" ships later,
-      Pro-gated.
+- [x] **Browse icons**: the Icon Library screen (from the gallery toolbar) shows the
+      user's uploads and Yoto's public library (`GET /media/displayIcons/user/yoto`) with
+      title/tag search; "import as starting point" ships later, Pro-gated.
 - [ ] Tests alongside each item; add the create → save → (mocked) assign UI happy path once
       the assign UI stabilizes.
 

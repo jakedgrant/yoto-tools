@@ -72,6 +72,24 @@ enum Fixtures {
         ]
     }
 
+    /// Public icon library response matching the server's shape (titled + tagged).
+    static func publicIcons(_ icons: [(mediaId: String, title: String, tags: [String])]) -> [String: Any] {
+        [
+            "displayIcons": icons.map { icon in
+                [
+                    "displayIconId": "display-\(icon.mediaId)",
+                    "mediaId": icon.mediaId,
+                    "userId": "yoto",
+                    "title": icon.title,
+                    "publicTags": icon.tags,
+                    "createdAt": "2024-11-18T17:21:23.568Z",
+                    "url": "https://example.com/icons/\(icon.mediaId).png",
+                    "public": true,
+                ] as [String: Any]
+            },
+        ]
+    }
+
     static func tokenResponse(
         accessToken: String,
         refreshToken: String?,
