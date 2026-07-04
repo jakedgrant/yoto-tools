@@ -51,8 +51,10 @@ Each lands independently, in this order:
       button assigns every track at once with a single upload + card update. (A
       gallery-wide "where is this art used" map would need to scan every card — deferred
       unless it proves needed.)
-- [ ] **Shape tools + mirror drawing**: new `DrawingTool` cases with stroke
-      start → preview → commit; mirrored coordinate writes in `draw()`.
+- [x] **Shape tools + mirror drawing**: line/rectangle/ellipse tools drag out a live
+      preview and commit as one undo step (Bresenham + Zingl rasterizers on `PixelGrid`);
+      a mirror mode (left–right / top–bottom / 4-way) expands every pencil, eraser, fill,
+      and shape write through one chokepoint.
 - [ ] **Browse icons**: one screen for the public Yoto icon library and the user's own
       uploads (`getUserIcons()` already exists); "import as starting point" ships later,
       Pro-gated.

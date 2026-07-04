@@ -48,8 +48,9 @@ The app needs a Yoto **Client ID**. Native apps use PKCE and do **not** need a c
 
 ## How it works
 
-1. **Draw** a 16×16 icon in the editor (pencil/eraser/fill/eyedropper, palette + custom
-   color, undo/redo, import-from-Photos, share as PNG).
+1. **Draw** a 16×16 icon in the editor (pencil/eraser/fill/eyedropper, line/rectangle/
+   ellipse shapes, mirror drawing, palette + custom color, undo/redo, import-from-Photos,
+   share as PNG).
 2. **Save** it to your gallery. Editing an existing drawing prompts to *overwrite* or
    *save a copy*.
 3. **Assign**: choose one of your Yoto playlists, pick a track, and the app uploads the
@@ -63,5 +64,5 @@ The app needs a Yoto **Client ID**. Native apps use PKCE and do **not** need a c
 | `YotoTools/Core/` | Auth (PKCE, token store, `AuthService`), networking (`YotoAPIClient`), models, support types |
 | `YotoTools/Features/PixelArt/` | Pixel model, editor, gallery, and assign-to-track flow |
 | `YotoTools/Features/Home`, `…/Settings` | Tool host (split view) and settings |
-| `YotoToolsTests/` | Swift Testing suites (59 tests) |
+| `YotoToolsTests/` | Swift Testing suites (71 tests) |
 | `TestSupport/` | Mocks, URL-protocol stub, fixtures |

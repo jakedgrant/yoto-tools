@@ -68,3 +68,56 @@ struct PixelGridTests {
         #expect(grid.isEmpty)
     }
 }
+
+struct PixelShapeTests {
+    @Test func linePointsWalkTheDiagonal() {
+        let points = PixelGrid.linePoints(
+            from: PixelGrid.Point(x: 0, y: 0),
+            to: PixelGrid.Point(x: 3, y: 3))
+        #expect(points == (0 ... 3).map { PixelGrid.Point(x: $0, y: $0) })
+    }
+
+    @Test func linePointsHandleReversedEndpoints() {
+        let points = PixelGrid.linePoints(
+            from: PixelGrid.Point(x: 4, y: 2),
+            to: PixelGrid.Point(x: 1, y: 2))
+        #expect(Set(points) == Set((1 ... 4).map { PixelGrid.Point(x: $0, y: 2) }))
+    }
+
+    @Test func rectanglePointsFormAnOutlineOnly() {
+        let points = Set(PixelGrid.rectanglePoints(
+            from: PixelGrid.Point(x: 1, y: 1),
+            to: PixelGrid.Point(x: 4, y: 3)))
+        #expect(points.contains(PixelGrid.Point(x: 1, y: 1)))
+        #expect(points.contains(PixelGrid.Point(x: 4, y: 3)))
+        #expect(points.contains(PixelGrid.Point(x: 2, y: 1)))
+        #expect(points.contains(PixelGrid.Point(x: 1, y: 2)))
+        #expect(!points.contains(PixelGrid.Point(x: 2, y: 2))) // interior untouched
+        #expect(points.count == 10) // 2*4 + 2*3 - 4 corners
+    }
+
+    @Test func ellipsePointsAreSymmetricTouchExtremesAndStayInBox() {
+        let points = Set(PixelGrid.ellipsePoints(
+            from: PixelGrid.Point(x: 2, y: 2),
+            to: PixelGrid.Point(x: 8, y: 6)))
+        // Touches the middle of every bounding-box edge.
+        #expect(points.contains(PixelGrid.Point(x: 5, y: 2)))
+        #expect(points.contains(PixelGrid.Point(x: 5, y: 6)))
+        #expect(points.contains(PixelGrid.Point(x: 2, y: 4)))
+        #expect(points.contains(PixelGrid.Point(x: 8, y: 4)))
+        for point in points {
+            // Four-way symmetric about the box center (5, 4).
+            #expect(points.contains(PixelGrid.Point(x: 10 - point.x, y: point.y)))
+            #expect(points.contains(PixelGrid.Point(x: point.x, y: 8 - point.y)))
+            // Never escapes the bounding box.
+            #expect(point.x >= 2 && point.x <= 8 && point.y >= 2 && point.y <= 6)
+        }
+    }
+
+    @Test func ellipsePointsDegenerateToALine() {
+        let points = Set(PixelGrid.ellipsePoints(
+            from: PixelGrid.Point(x: 3, y: 1),
+            to: PixelGrid.Point(x: 3, y: 5)))
+        #expect(points == Set((1 ... 5).map { PixelGrid.Point(x: 3, y: $0) }))
+    }
+}

@@ -64,6 +64,98 @@ struct EditorViewModelTests {
         #expect(vm.grid.color(x: 0, y: 0) == .black)
     }
 
+    @Test func shapeStrokePreviewsThenCommitsAsOneUndoStep() {
+        let vm = EditorViewModel(mode: .new)
+        vm.activeTool = .line
+
+        vm.draw(x: 0, y: 0, beginningStroke: true)
+        vm.draw(x: 3, y: 3, beginningStroke: false)
+        // The preview shows the line; the grid itself is untouched until commit.
+        #expect(vm.grid.isEmpty)
+        #expect(vm.displayGrid.color(x: 2, y: 2) == .black)
+        #expect(!vm.canUndo)
+
+        vm.endStroke()
+        #expect(vm.grid.color(x: 0, y: 0) == .black)
+        #expect(vm.grid.color(x: 3, y: 3) == .black)
+        #expect(vm.canUndo)
+
+        vm.undo()
+        #expect(vm.grid.isEmpty)
+    }
+
+    @Test func rectangleToolDrawsOutlineOnly() {
+        let vm = EditorViewModel(mode: .new)
+        vm.activeTool = .rectangle
+        vm.draw(x: 1, y: 1, beginningStroke: true)
+        vm.draw(x: 4, y: 3, beginningStroke: false)
+        vm.endStroke()
+
+        #expect(vm.grid.color(x: 1, y: 1) == .black)
+        #expect(vm.grid.color(x: 4, y: 3) == .black)
+        #expect(vm.grid.color(x: 2, y: 3) == .black)
+        #expect(vm.grid.color(x: 2, y: 2).isClear)
+    }
+
+    @Test func shapeDragClampsBeyondCanvasEdge() {
+        let vm = EditorViewModel(mode: .new)
+        vm.activeTool = .line
+        vm.draw(x: 2, y: 2, beginningStroke: true)
+        vm.draw(x: 40, y: 2, beginningStroke: false) // dragged far off the right edge
+        vm.endStroke()
+
+        #expect(vm.grid.color(x: 2, y: 2) == .black)
+        #expect(vm.grid.color(x: 15, y: 2) == .black)
+    }
+
+    @Test func mirrorHorizontalMirrorsPencilAndEraser() {
+        let vm = EditorViewModel(mode: .new)
+        vm.mirrorMode = .horizontal
+        vm.draw(x: 2, y: 3, beginningStroke: true)
+        #expect(vm.grid.color(x: 2, y: 3) == .black)
+        #expect(vm.grid.color(x: 13, y: 3) == .black)
+
+        vm.activeTool = .eraser
+        vm.draw(x: 13, y: 3, beginningStroke: true)
+        #expect(vm.grid.color(x: 2, y: 3).isClear)
+        #expect(vm.grid.color(x: 13, y: 3).isClear)
+    }
+
+    @Test func fourWayMirrorPaintsAllQuadrants() {
+        let vm = EditorViewModel(mode: .new)
+        vm.mirrorMode = .fourWay
+        vm.draw(x: 1, y: 2, beginningStroke: true)
+        #expect(vm.grid.color(x: 1, y: 2) == .black)
+        #expect(vm.grid.color(x: 14, y: 2) == .black)
+        #expect(vm.grid.color(x: 1, y: 13) == .black)
+        #expect(vm.grid.color(x: 14, y: 13) == .black)
+    }
+
+    @Test func mirroredShapeCommitsBothHalves() {
+        let vm = EditorViewModel(mode: .new)
+        vm.mirrorMode = .horizontal
+        vm.activeTool = .line
+        vm.draw(x: 0, y: 0, beginningStroke: true)
+        vm.draw(x: 0, y: 3, beginningStroke: false)
+        vm.endStroke()
+
+        #expect(vm.grid.color(x: 0, y: 1) == .black)
+        #expect(vm.grid.color(x: 15, y: 1) == .black)
+    }
+
+    @Test func mirroredFillFillsBothSeedRegions() {
+        let vm = EditorViewModel(mode: .new)
+        vm.mirrorMode = .horizontal
+        vm.draw(x: 0, y: 0, beginningStroke: true) // pencil dot at (0,0) + (15,0)
+
+        let red = PixelColor(r: 255, g: 0, b: 0)
+        vm.activeColor = red
+        vm.activeTool = .fill
+        vm.draw(x: 0, y: 0, beginningStroke: true)
+        #expect(vm.grid.color(x: 0, y: 0) == red)
+        #expect(vm.grid.color(x: 15, y: 0) == red)
+    }
+
     @Test func newArtworkSavesWithoutAChoice() throws {
         let context = try makeContext()
         let vm = EditorViewModel(mode: .new, dateProvider: .fixed(fixedDate))

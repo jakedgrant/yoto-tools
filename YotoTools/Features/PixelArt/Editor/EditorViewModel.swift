@@ -15,6 +15,11 @@ final class EditorViewModel {
     var activeTool: DrawingTool = .pencil
     var activeColor: PixelColor = .black
     var showsGrid: Bool = true
+    var mirrorMode: MirrorMode = .off
+
+    /// Live overlay while a shape tool is being dragged; committed by `endStroke()`.
+    private(set) var shapePreview: PixelGrid?
+    private var strokeStart: PixelGrid.Point?
 
     private let mode: Mode
     private let dateProvider: DateProvider
@@ -23,6 +28,9 @@ final class EditorViewModel {
     private var undoStack: [PixelGrid] = []
     private var redoStack: [PixelGrid] = []
     private let maxUndoSteps = 50
+
+    /// What the canvas should render: the in-progress shape preview when present.
+    var displayGrid: PixelGrid { shapePreview ?? grid }
 
     init(mode: Mode, dateProvider: DateProvider = .live) {
         self.mode = mode
@@ -73,6 +81,11 @@ final class EditorViewModel {
     /// Applies the active tool at a cell. Pass `beginningStroke` true for the first
     /// touch of a drag (or a discrete tap) so a single undo step covers the stroke.
     func draw(x: Int, y: Int, beginningStroke: Bool) {
+        if activeTool.isShape {
+            updateShapeStroke(x: x, y: y, beginningStroke: beginningStroke)
+            return
+        }
+
         guard grid.isInBounds(x: x, y: y) else { return }
 
         if activeTool == .eyedropper {
@@ -85,13 +98,57 @@ final class EditorViewModel {
 
         switch activeTool {
         case .pencil:
-            grid.setColor(activeColor, x: x, y: y)
+            write([PixelGrid.Point(x: x, y: y)], color: activeColor, into: &grid)
         case .eraser:
-            grid.setColor(.clear, x: x, y: y)
+            write([PixelGrid.Point(x: x, y: y)], color: .clear, into: &grid)
         case .fill:
-            grid.floodFill(x: x, y: y, with: activeColor)
-        case .eyedropper:
+            for point in mirrorMode.expand(PixelGrid.Point(x: x, y: y)) {
+                grid.floodFill(x: point.x, y: point.y, with: activeColor)
+            }
+        case .eyedropper, .line, .rectangle, .ellipse:
             break
+        }
+    }
+
+    /// Finishes the current stroke; commits an in-progress shape as one undo step.
+    func endStroke() {
+        defer { strokeStart = nil }
+        guard let preview = shapePreview else { return }
+        shapePreview = nil
+        guard preview != grid else { return }
+        pushUndoSnapshot()
+        grid = preview
+    }
+
+    private func updateShapeStroke(x: Int, y: Int, beginningStroke: Bool) {
+        // Clamp so dragging past the edge keeps the shape pinned to the canvas.
+        let point = PixelGrid.Point(
+            x: min(max(x, 0), PixelGrid.side - 1),
+            y: min(max(y, 0), PixelGrid.side - 1))
+        if beginningStroke { strokeStart = point }
+        guard let start = strokeStart else { return }
+
+        var preview = grid
+        write(shapePoints(from: start, to: point), color: activeColor, into: &preview)
+        shapePreview = preview
+    }
+
+    private func shapePoints(from start: PixelGrid.Point, to end: PixelGrid.Point) -> [PixelGrid.Point] {
+        switch activeTool {
+        case .line: PixelGrid.linePoints(from: start, to: end)
+        case .rectangle: PixelGrid.rectanglePoints(from: start, to: end)
+        case .ellipse: PixelGrid.ellipsePoints(from: start, to: end)
+        case .pencil, .eraser, .fill, .eyedropper: []
+        }
+    }
+
+    /// The single write chokepoint: expands each cell through the mirror mode and
+    /// clips to bounds.
+    private func write(_ points: [PixelGrid.Point], color: PixelColor, into target: inout PixelGrid) {
+        for point in points {
+            for mirrored in mirrorMode.expand(point) where target.isInBounds(x: mirrored.x, y: mirrored.y) {
+                target.setColor(color, x: mirrored.x, y: mirrored.y)
+            }
         }
     }
 

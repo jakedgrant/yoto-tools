@@ -29,11 +29,12 @@ struct PixelArtEditorView: View {
     var body: some View {
         VStack(spacing: 16) {
             PixelCanvasView(
-                grid: viewModel.grid,
+                grid: viewModel.displayGrid,
                 showsGrid: viewModel.showsGrid,
                 onDraw: { x, y, beginning in
                     viewModel.draw(x: x, y: y, beginningStroke: beginning)
-                })
+                },
+                onStrokeEnded: { viewModel.endStroke() })
                 .padding(.horizontal)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
 
@@ -73,7 +74,10 @@ struct PixelArtEditorView: View {
         VStack(spacing: 12) {
             Picker("Tool", selection: $viewModel.activeTool) {
                 ForEach(DrawingTool.allCases) { tool in
-                    Label(tool.label, systemImage: tool.systemImage).tag(tool)
+                    // Icon-only segments: seven text labels don't fit an iPhone width.
+                    Image(systemName: tool.systemImage)
+                        .accessibilityLabel(tool.label)
+                        .tag(tool)
                 }
             }
             .pickerStyle(.segmented)
@@ -99,6 +103,20 @@ struct PixelArtEditorView: View {
                     Image(systemName: "grid")
                 }
                 .toggleStyle(.button)
+
+                Menu {
+                    Picker("Mirror", selection: $viewModel.mirrorMode) {
+                        ForEach(MirrorMode.allCases) { mode in
+                            Label(mode.label, systemImage: mode.systemImage).tag(mode)
+                        }
+                    }
+                } label: {
+                    Image(systemName: viewModel.mirrorMode == .off
+                        ? "rectangle.split.2x1"
+                        : viewModel.mirrorMode.systemImage)
+                        .foregroundStyle(viewModel.mirrorMode == .off ? Color.secondary : Color.accentColor)
+                }
+                .accessibilityLabel(viewModel.mirrorMode.label)
 
                 PhotosPicker(selection: $photoItem, matching: .images) {
                     Image(systemName: "photo.badge.plus")

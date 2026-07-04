@@ -7,6 +7,8 @@ struct PixelCanvasView: View {
     let showsGrid: Bool
     /// Called with the cell coordinate and whether this is the first touch of a stroke.
     let onDraw: (Int, Int, Bool) -> Void
+    /// Called when the finger lifts, ending the stroke (shape tools commit here).
+    let onStrokeEnded: () -> Void
 
     @State private var isStroking = false
 
@@ -30,7 +32,10 @@ struct PixelCanvasView: View {
                         onDraw(x, y, !isStroking)
                         isStroking = true
                     }
-                    .onEnded { _ in isStroking = false })
+                    .onEnded { _ in
+                        isStroking = false
+                        onStrokeEnded()
+                    })
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
         .aspectRatio(1, contentMode: .fit)
