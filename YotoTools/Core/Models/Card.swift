@@ -91,6 +91,14 @@ struct CardDetail: Sendable, Equatable {
         ])
     }
 
+    /// Removes a track's custom `display.icon16x16`, restoring the player's default.
+    mutating func clearTrackIcon(chapterIndex: Int, trackIndex: Int) {
+        json.remove(at: [
+            .key("content"), .key("chapters"), .index(chapterIndex),
+            .key("tracks"), .index(trackIndex), .key("display"), .key("icon16x16"),
+        ])
+    }
+
     /// The body sent to `POST /content`: only the writable top-level fields, with
     /// their full subtrees preserved.
     func encodedBody() throws -> Data {

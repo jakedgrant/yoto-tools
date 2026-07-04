@@ -108,6 +108,102 @@ struct IconAssignmentServiceTests {
         #expect(api.uploads.count == 1)
     }
 
+    @Test func chapterAssignUploadsOnceAndSetsEveryTrack() async throws {
+        let api = MockYotoAPI()
+        api.uploadMediaId = "MEDIA-ALL"
+        let service = IconAssignmentService(api: api)
+        let card = Fixtures.card()
+        let chapter = try #require(card.chapters.first)
+
+        let result = try await service.assign(
+            grid: PixelGrid(),
+            toChapter: chapter,
+            in: card,
+            filename: "all")
+
+        #expect(result.mediaId == "MEDIA-ALL")
+        #expect(api.uploads.count == 1)
+        #expect(api.updatedCards.count == 1)
+        let tracks = try #require(api.updatedCards.last?.chapters.first?.tracks)
+        #expect(tracks.allSatisfy { $0.iconRef == "yoto:#MEDIA-ALL" })
+    }
+
+    @Test func chapterAssignReusesCachedMediaId() async throws {
+        let api = MockYotoAPI()
+        api.userIcons = [UserIcon(mediaId: "CACHED")]
+        let service = IconAssignmentService(api: api)
+        let card = Fixtures.card()
+        let chapter = try #require(card.chapters.first)
+
+        let result = try await service.assign(
+            grid: PixelGrid(),
+            toChapter: chapter,
+            in: card,
+            filename: "all",
+            cachedMediaId: "CACHED")
+
+        #expect(result.mediaId == "CACHED")
+        #expect(api.uploads.isEmpty)
+    }
+
+    @Test func unassignClearsTheTrackIconAndPersists() async throws {
+        let api = MockYotoAPI()
+        let service = IconAssignmentService(api: api)
+        let card = Fixtures.card()
+        let track = try #require(card.chapters.first?.tracks.first) // "The Moon", has OLDICON
+
+        let saved = try await service.unassign(track: track, in: card)
+
+        #expect(api.uploads.isEmpty)
+        #expect(api.updatedCards.count == 1)
+        let tracks = try #require(saved.chapters.first?.tracks)
+        #expect(tracks[0].hasCustomIcon == false)
+        #expect(tracks[1].title == "The Stars")
+    }
+
+    @Test func detailViewModelAssignsWholeChapterAndMarksTracks() async throws {
+        let api = MockYotoAPI()
+        api.uploadMediaId = "MEDIA-ALL"
+        api.cardsByID = ["CARD1": Fixtures.card()]
+
+        let vm = CardDetailViewModel(
+            api: api,
+            cardId: "CARD1",
+            grid: PixelGrid(),
+            artName: "My Art",
+            onAssigned: { _ in })
+
+        await vm.load()
+        let chapter = try #require(vm.card?.chapters.first)
+        await vm.assign(chapter: chapter)
+
+        #expect(api.uploads.count == 1)
+        #expect(vm.banner?.isError == false)
+        let tracks = try #require(vm.card?.chapters.first?.tracks)
+        #expect(tracks.allSatisfy { vm.showsCurrentArt($0) })
+        #expect(vm.isBusy == false)
+    }
+
+    @Test func detailViewModelUnassignRemovesIconAndReportsIt() async throws {
+        let api = MockYotoAPI()
+        api.cardsByID = ["CARD1": Fixtures.card()]
+
+        let vm = CardDetailViewModel(
+            api: api,
+            cardId: "CARD1",
+            grid: PixelGrid(),
+            artName: "My Art",
+            onAssigned: { _ in })
+
+        await vm.load()
+        let track = try #require(vm.card?.chapters.first?.tracks.first)
+        await vm.unassign(track: track)
+
+        #expect(vm.banner?.isError == false)
+        #expect(vm.card?.chapters.first?.tracks.first?.hasCustomIcon == false)
+        #expect(api.uploads.isEmpty)
+    }
+
     @Test func detailViewModelUploadsOnceAcrossTwoAssigns() async throws {
         let api = MockYotoAPI()
         api.uploadMediaId = "MEDIA-1"

@@ -17,7 +17,11 @@ final class CardDetailViewModel {
     private(set) var loadState: LoadState = .loading
     private(set) var card: CardDetail?
     private(set) var assigningTrackID: String?
+    private(set) var assigningChapterIndex: Int?
     var banner: Banner?
+
+    /// Whether any assign/unassign operation is in flight.
+    var isBusy: Bool { assigningTrackID != nil || assigningChapterIndex != nil }
 
     private let api: any YotoAPI
     private let assignment: IconAssignmentService
@@ -58,7 +62,7 @@ final class CardDetailViewModel {
     }
 
     func assign(track: TrackView) async {
-        guard let currentCard = card, assigningTrackID == nil else { return }
+        guard let currentCard = card, !isBusy else { return }
         assigningTrackID = track.id
         defer { assigningTrackID = nil }
         do {
@@ -75,6 +79,46 @@ final class CardDetailViewModel {
         } catch {
             banner = Banner(message: APIErrorFormatter.message(error), isError: true)
         }
+    }
+
+    func assign(chapter: ChapterView) async {
+        guard let currentCard = card, !isBusy, !chapter.tracks.isEmpty else { return }
+        assigningChapterIndex = chapter.index
+        defer { assigningChapterIndex = nil }
+        do {
+            let result = try await assignment.assign(
+                grid: grid,
+                toChapter: chapter,
+                in: currentCard,
+                filename: filename,
+                cachedMediaId: cachedMediaId)
+            card = result.card
+            cachedMediaId = result.mediaId
+            onAssigned(result.mediaId)
+            banner = Banner(
+                message: "Assigned to all \(chapter.tracks.count) tracks in \"\(chapter.title)\".",
+                isError: false)
+        } catch {
+            banner = Banner(message: APIErrorFormatter.message(error), isError: true)
+        }
+    }
+
+    func unassign(track: TrackView) async {
+        guard let currentCard = card, !isBusy else { return }
+        assigningTrackID = track.id
+        defer { assigningTrackID = nil }
+        do {
+            card = try await assignment.unassign(track: track, in: currentCard)
+            banner = Banner(message: "Removed icon from \"\(track.title)\".", isError: false)
+        } catch {
+            banner = Banner(message: APIErrorFormatter.message(error), isError: true)
+        }
+    }
+
+    /// Whether `track` currently shows the art being assigned (by media id).
+    func showsCurrentArt(_ track: TrackView) -> Bool {
+        guard let cachedMediaId else { return false }
+        return track.iconRef == "yoto:#\(cachedMediaId)"
     }
 
     private var filename: String {
@@ -145,10 +189,12 @@ struct CardDetailView: View {
         List {
             artPreviewSection
             ForEach(viewModel.card?.chapters ?? []) { chapter in
-                Section(chapter.title) {
+                Section {
                     ForEach(chapter.tracks) { track in
                         trackRow(track, viewModel: viewModel)
                     }
+                } header: {
+                    chapterHeader(chapter, viewModel: viewModel)
                 }
             }
         }
@@ -175,6 +221,24 @@ struct CardDetailView: View {
         }
     }
 
+    private func chapterHeader(_ chapter: ChapterView, viewModel: CardDetailViewModel) -> some View {
+        HStack {
+            Text(chapter.title)
+            Spacer()
+            if viewModel.assigningChapterIndex == chapter.index {
+                ProgressView()
+                    .controlSize(.small)
+            } else if chapter.tracks.count > 1 {
+                Button("Assign All") {
+                    Task { await viewModel.assign(chapter: chapter) }
+                }
+                .font(.caption.weight(.medium))
+                .buttonStyle(.borderless)
+                .disabled(viewModel.isBusy)
+            }
+        }
+    }
+
     private func trackRow(_ track: TrackView, viewModel: CardDetailViewModel) -> some View {
         Button {
             Task { await viewModel.assign(track: track) }
@@ -185,6 +249,10 @@ struct CardDetailView: View {
                 Spacer()
                 if viewModel.assigningTrackID == track.id {
                     ProgressView()
+                } else if viewModel.showsCurrentArt(track) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.tint)
+                        .accessibilityLabel("Shows this icon")
                 } else if track.hasCustomIcon {
                     Image(systemName: "photo")
                         .foregroundStyle(.secondary)
@@ -192,7 +260,22 @@ struct CardDetailView: View {
             }
         }
         .buttonStyle(.plain)
-        .disabled(viewModel.assigningTrackID != nil)
+        .disabled(viewModel.isBusy)
+        .swipeActions(edge: .trailing) {
+            removeIconButton(track, viewModel: viewModel)
+        }
+        .contextMenu {
+            removeIconButton(track, viewModel: viewModel)
+        }
+    }
+
+    @ViewBuilder
+    private func removeIconButton(_ track: TrackView, viewModel: CardDetailViewModel) -> some View {
+        if track.hasCustomIcon {
+            Button("Remove Icon", systemImage: "xmark.circle", role: .destructive) {
+                Task { await viewModel.unassign(track: track) }
+            }
+        }
     }
 
     private func trackIcon(_ track: TrackView) -> some View {

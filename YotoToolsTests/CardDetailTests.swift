@@ -22,6 +22,29 @@ struct JSONValueTests {
         value.set(.string("y"), at: [.key("list"), .index(5)])
         #expect(value["list"]?.arrayValue?.count == 1)
     }
+
+    @Test func removeDeletesNestedKeyAndKeepsSiblings() {
+        var value = JSONValue.object([
+            "a": .object(["keep": .string("k"), "drop": .string("d")]),
+        ])
+        value.remove(at: [.key("a"), .key("drop")])
+        #expect(value["a"]?["drop"] == nil)
+        #expect(value["a"]?["keep"]?.stringValue == "k")
+    }
+
+    @Test func removeIsNoOpForMissingPath() {
+        let original = JSONValue.object(["a": .string("x")])
+        var value = original
+        value.remove(at: [.key("missing"), .key("deeper")])
+        value.remove(at: [.key("a"), .index(3)])
+        #expect(value == original)
+    }
+
+    @Test func removeDeletesArrayElement() {
+        var value = JSONValue.object(["list": .array([.string("x"), .string("y")])])
+        value.remove(at: [.key("list"), .index(0)])
+        #expect(value["list"]?.arrayValue == [.string("y")])
+    }
 }
 
 struct CardDetailTests {
@@ -35,6 +58,20 @@ struct CardDetailTests {
         #expect(tracks[0].iconRef == "yoto:#OLDICON")
         // Titles untouched.
         #expect(tracks[0].title == "The Moon")
+        #expect(tracks[1].title == "The Stars")
+    }
+
+    @Test func clearTrackIconRemovesOnlyThatTracksIcon() {
+        var card = Fixtures.card()
+        card.clearTrackIcon(chapterIndex: 0, trackIndex: 0)
+
+        let tracks = try! #require(card.chapters.first?.tracks)
+        #expect(tracks[0].iconRef == nil)
+        #expect(tracks[0].hasCustomIcon == false)
+        // The track itself and its siblings are otherwise untouched.
+        #expect(tracks[0].title == "The Moon")
+        let rawTrack = card.json["content"]?["chapters"]?.arrayValue?[0]["tracks"]?.arrayValue?[0]
+        #expect(rawTrack?["trackUrl"]?.stringValue == "yoto:#abc")
         #expect(tracks[1].title == "The Stars")
     }
 

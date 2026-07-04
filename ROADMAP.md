@@ -46,8 +46,11 @@ Each lands independently, in this order:
       (`GET /media/displayIcons/user/me`); assigning reuses `PixelArt.lastUploadedMediaId`
       when the server still lists it (verified per assign, falls back to a fresh upload),
       so assigning one drawing to several tracks uploads once.
-- [ ] **Per-track assignment polish**: show which local art is assigned where,
-      unassign/reset, assign to a whole chapter at once.
+- [x] **Per-track assignment polish**: the assign screen marks tracks already showing the
+      art in hand, tracks can be unassigned (swipe or context menu), and a chapter header
+      button assigns every track at once with a single upload + card update. (A
+      gallery-wide "where is this art used" map would need to scan every card — deferred
+      unless it proves needed.)
 - [ ] **Shape tools + mirror drawing**: new `DrawingTool` cases with stroke
       start → preview → commit; mirrored coordinate writes in `draw()`.
 - [ ] **Browse icons**: one screen for the public Yoto icon library and the user's own

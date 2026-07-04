@@ -63,5 +63,5 @@ The app needs a Yoto **Client ID**. Native apps use PKCE and do **not** need a c
 | `YotoTools/Core/` | Auth (PKCE, token store, `AuthService`), networking (`YotoAPIClient`), models, support types |
 | `YotoTools/Features/PixelArt/` | Pixel model, editor, gallery, and assign-to-track flow |
 | `YotoTools/Features/Home`, `…/Settings` | Tool host (split view) and settings |
-| `YotoToolsTests/` | Swift Testing suites (50 tests) |
+| `YotoToolsTests/` | Swift Testing suites (59 tests) |
 | `TestSupport/` | Mocks, URL-protocol stub, fixtures |

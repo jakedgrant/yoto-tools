@@ -103,4 +103,33 @@ extension JSONValue {
             self = .array(array)
         }
     }
+
+    /// Removes the value at the given path. Missing intermediates and
+    /// out-of-range indices are a no-op, mirroring `set`.
+    mutating func remove(at path: [PathComponent]) {
+        guard let first = path.first else { return }
+        let rest = Array(path.dropFirst())
+        switch first {
+        case .key(let key):
+            guard var object = objectValue else { return }
+            if rest.isEmpty {
+                object.removeValue(forKey: key)
+            } else {
+                guard var child = object[key] else { return }
+                child.remove(at: rest)
+                object[key] = child
+            }
+            self = .object(object)
+        case .index(let index):
+            guard var array = arrayValue, index >= 0, index < array.count else { return }
+            if rest.isEmpty {
+                array.remove(at: index)
+            } else {
+                var child = array[index]
+                child.remove(at: rest)
+                array[index] = child
+            }
+            self = .array(array)
+        }
+    }
 }
