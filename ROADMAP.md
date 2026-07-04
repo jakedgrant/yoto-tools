@@ -42,14 +42,16 @@ account and review notes, since reviewers won't own a Yoto player.
 
 Each lands independently, in this order:
 
-- [ ] **Reuse already-uploaded icons**: `getUserIcons()` on the `YotoAPI` protocol
-      (`GET /media/displayIcons/user/me`), picker in the assign flow; skip re-upload when
-      `PixelArt.lastUploadedMediaId` is still valid.
+- [x] **Reuse already-uploaded icons**: `getUserIcons()` on the `YotoAPI` protocol
+      (`GET /media/displayIcons/user/me`); assigning reuses `PixelArt.lastUploadedMediaId`
+      when the server still lists it (verified per assign, falls back to a fresh upload),
+      so assigning one drawing to several tracks uploads once.
 - [ ] **Per-track assignment polish**: show which local art is assigned where,
       unassign/reset, assign to a whole chapter at once.
 - [ ] **Shape tools + mirror drawing**: new `DrawingTool` cases with stroke
       start → preview → commit; mirrored coordinate writes in `draw()`.
-- [ ] **Browse the public Yoto icon library**; "import as starting point" ships later,
+- [ ] **Browse icons**: one screen for the public Yoto icon library and the user's own
+      uploads (`getUserIcons()` already exists); "import as starting point" ships later,
       Pro-gated.
 - [ ] Tests alongside each item; add the create → save → (mocked) assign UI happy path once
       the assign UI stabilizes.

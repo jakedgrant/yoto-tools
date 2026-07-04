@@ -59,13 +59,16 @@ final class MockYotoAPI: YotoAPI {
     var cards: [CardSummary] = []
     var cardsByID: [String: CardDetail] = [:]
     var uploadMediaId = "MEDIA-NEW"
+    var userIcons: [UserIcon] = []
     var uploadError: Error?
     var updateError: Error?
     var getContentError: Error?
+    var getUserIconsError: Error?
 
     private(set) var uploads: [(data: Data, filename: String, autoConvert: Bool)] = []
     private(set) var updatedCards: [CardDetail] = []
     private(set) var requestedCardIDs: [String] = []
+    private(set) var getUserIconsCallCount = 0
 
     func getMyContent() async throws -> [CardSummary] { cards }
 
@@ -85,6 +88,14 @@ final class MockYotoAPI: YotoAPI {
     func uploadIcon(pngData: Data, filename: String, autoConvert: Bool) async throws -> String {
         if let uploadError { throw uploadError }
         uploads.append((pngData, filename, autoConvert))
+        // Mirror the real server: a successful upload appears in the user's icon list.
+        userIcons.append(UserIcon(mediaId: uploadMediaId))
         return uploadMediaId
+    }
+
+    func getUserIcons() async throws -> [UserIcon] {
+        getUserIconsCallCount += 1
+        if let getUserIconsError { throw getUserIconsError }
+        return userIcons
     }
 }

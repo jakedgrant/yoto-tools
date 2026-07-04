@@ -24,6 +24,9 @@ final class CardDetailViewModel {
     private let cardId: String
     private let grid: PixelGrid
     private let artName: String
+    /// Media id of this art's most recent upload, if any; assigning reuses it
+    /// (when the server still has it) instead of uploading again.
+    private var cachedMediaId: String?
     /// Called after a successful assign with the new media id (for local caching).
     private let onAssigned: (String) -> Void
 
@@ -32,6 +35,7 @@ final class CardDetailViewModel {
         cardId: String,
         grid: PixelGrid,
         artName: String,
+        cachedMediaId: String? = nil,
         onAssigned: @escaping (String) -> Void
     ) {
         self.api = api
@@ -39,6 +43,7 @@ final class CardDetailViewModel {
         self.cardId = cardId
         self.grid = grid
         self.artName = artName
+        self.cachedMediaId = cachedMediaId
         self.onAssigned = onAssigned
     }
 
@@ -61,8 +66,10 @@ final class CardDetailViewModel {
                 grid: grid,
                 to: track,
                 in: currentCard,
-                filename: filename)
+                filename: filename,
+                cachedMediaId: cachedMediaId)
             card = result.card
+            cachedMediaId = result.mediaId
             onAssigned(result.mediaId)
             banner = Banner(message: "Assigned to \"\(track.title)\".", isError: false)
         } catch {
@@ -109,6 +116,7 @@ struct CardDetailView: View {
                 cardId: cardId,
                 grid: art.grid,
                 artName: art.name,
+                cachedMediaId: art.lastUploadedMediaId,
                 onAssigned: { mediaId in art.lastUploadedMediaId = mediaId })
             viewModel = model
             await model.load()

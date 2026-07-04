@@ -90,6 +90,35 @@ struct YotoAPIClientTests {
         }
     }
 
+    @Test func getUserIconsDecodesAndSendsBearer() async throws {
+        let log = RequestLog()
+        StubURLProtocol.handler = { request in
+            log.append(request)
+            return StubURLProtocol.json(Fixtures.userIcons(["ICON-1", "ICON-2"]))
+        }
+        defer { StubURLProtocol.handler = nil }
+
+        let icons = try await makeClient().getUserIcons()
+        #expect(icons.map(\.mediaId) == ["ICON-1", "ICON-2"])
+        #expect(icons.first?.url?.absoluteString == "https://example.com/icons/ICON-1.png")
+        // Fractional-seconds ISO 8601 timestamps parse.
+        #expect(icons.first?.createdAt != nil)
+
+        let request = try #require(log.all.first)
+        #expect(request.url?.path == "/media/displayIcons/user/me")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer access-1")
+    }
+
+    @Test func getUserIconsToleratesMissingOptionalFields() async throws {
+        StubURLProtocol.handler = { _ in
+            StubURLProtocol.json(["displayIcons": [["mediaId": "BARE"]]])
+        }
+        defer { StubURLProtocol.handler = nil }
+
+        let icons = try await makeClient().getUserIcons()
+        #expect(icons == [UserIcon(mediaId: "BARE")])
+    }
+
     @Test func uploadIconUsesPNGContentTypeAndQuery() async throws {
         let log = RequestLog()
         StubURLProtocol.handler = { request in

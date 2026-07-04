@@ -70,6 +70,16 @@ actor YotoAPIClient: YotoAPI {
         }
     }
 
+    func getUserIcons() async throws -> [UserIcon] {
+        let request = try await authorized(makeRequest(path: "/media/displayIcons/user/me"))
+        let (data, _) = try await sendExpectingSuccess(request)
+        do {
+            return try JSONDecoder().decode(UserIconsResponse.self, from: data).displayIcons
+        } catch {
+            throw APIError.decoding("\(error)")
+        }
+    }
+
     // MARK: - Request plumbing
 
     private func makeRequest(path: String) -> URLRequest {

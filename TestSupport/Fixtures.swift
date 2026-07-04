@@ -56,6 +56,22 @@ enum Fixtures {
         ]
     }
 
+    /// User icons listing response, one entry per media id, matching the server's shape.
+    static func userIcons(_ mediaIds: [String]) -> [String: Any] {
+        [
+            "displayIcons": mediaIds.map { mediaId in
+                [
+                    "displayIconId": "display-\(mediaId)",
+                    "mediaId": mediaId,
+                    "userId": "user-123",
+                    "createdAt": "2025-05-28T16:16:06.451Z",
+                    "url": "https://example.com/icons/\(mediaId).png",
+                    "public": false,
+                ] as [String: Any]
+            },
+        ]
+    }
+
     static func tokenResponse(
         accessToken: String,
         refreshToken: String?,

@@ -130,3 +130,38 @@ struct UploadIconResponse: Decodable, Sendable {
         let mediaId: String
     }
 }
+
+/// One of the user's previously uploaded icons, from `GET /media/displayIcons/user/me`.
+/// Only `mediaId` is required; the rest is tolerated defensively like `CardSummary`.
+struct UserIcon: Identifiable, Hashable, Sendable, Decodable {
+    let mediaId: String
+    let url: URL?
+    let createdAt: Date?
+
+    var id: String { mediaId }
+
+    private enum CodingKeys: String, CodingKey { case mediaId, url, createdAt }
+
+    init(mediaId: String, url: URL? = nil, createdAt: Date? = nil) {
+        self.mediaId = mediaId
+        self.url = url
+        self.createdAt = createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.mediaId = try container.decode(String.self, forKey: .mediaId)
+        self.url = (try? container.decode(String.self, forKey: .url)).flatMap(URL.init(string:))
+        // Timestamps arrive as ISO 8601 with fractional seconds; accept both variants.
+        let timestamp = try? container.decode(String.self, forKey: .createdAt)
+        self.createdAt = timestamp.flatMap { string in
+            (try? Date(string, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true)))
+                ?? (try? Date(string, strategy: .iso8601))
+        }
+    }
+}
+
+/// Response from the user icons listing endpoint.
+struct UserIconsResponse: Decodable, Sendable {
+    let displayIcons: [UserIcon]
+}
